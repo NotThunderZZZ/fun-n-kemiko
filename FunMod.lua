@@ -1,31 +1,51 @@
 ---@diagnostic disable: deprecated
+--[[
+---------------------------------------
+Fun and Chemicals mod
+By 0xHenryMC and moches (for suggestions)
+---------------------------------------
+Presenting...
+The best of TPT Lua API abus- i mean...
+More 13 fun and destructive elements for you to enjoy
+
+--
+Name (In-game Symbol)     In game desc
+Sodium (NA):              Sodium... Yeah, explode violently in water
+Potassium (K):            Potassium... Heats up in water
+White Phosphorus (P4):    White phosphorus. Very unethical for use on stickmen or fighters.
+Red Phosphorus (P4):      Red phosphorus. Not very reactive. Cure it with heat and >7 pressure.
+Flashbang (FBNG):         WIP
+Potassium Fluoride (KF):  Potassium Fluoride. Use it as cleaner because it kills bacteria.
+Chloride (CL):            Chloride. Harmful to stickmen & fighters
+Extinguish Gas (EXGS):    Extinguish gas. Created to effectively treat white phosphorus, though it can also extinguish coal and wood as well...
+Methane (CH4):            Methane gas. Flammability on another level
+Ammonia (NH3):            Ammonia.
+... and much much more!
+]]
 print("\bt[FM]\bw Fun n' Chemicals loaded!")
 tpt.register_keyevent(function (k, c, m, e) 
-    if k == "o"and e == 1 and m == 64 then
+    if k == "o"and e == 1 and m == 64+256 then
         tpt.log("Greetings from USA, by 0xHenryMC.")
     elseif k == "," and e == 1 then
         interface.beginInput("Called: interface.beginInput", "This is a prompt", "Hello, World!", "", function(data) 
-            if data ~= "" then
+            if data == "restart" then
+                tpt.log("Restarting...")
+                plat.restart()
+            end
+            if data ~= nil then
                 tpt.log(data)
                 graphics.drawText(100,100, data)
             elseif data == "" then
                 tpt.log("Nothing got entered. Cancelling")
                 graphics.drawText(100,100, "Nothin'")
             end
-        end
-        )
-    elseif k == "'" then
-        plat.restart()
-    elseif k == 'i' then
-        graphics.drawRect(0,0,604,383,255,255,255,255)
+        end)
     end
 end)
 
 -- Chemicals
 local na = elem.allocate("FUNPK1", "Na")
 local k = elem.allocate("FUNPK1", "K")
-local kcl = elem.allocate("FUNPK1", "KCL")
-local k2so4 = elem.allocate("FUNPK1", "K2SO4")
 local p = elem.allocate("FUNPK1", "P4")
 local redp = elem.allocate("FUNPK1", "REDP4")
 local fb = elem.allocate("FUNPK1", "FB")
@@ -74,8 +94,9 @@ elem.property(na, "Graphics", function(i, colr, colg, colb)
 end)
 
 ---- Potassium ----
+local kf = elem.allocate("FUNPK1", "KF")
 elem.property(k, "Name", "K")
-elem.property(k, "Description", "Potassium... Expose to Chloride for Potassium Chloride or SO4 for Potassium Sulfate")
+elem.property(k, "Description", "Potassium... Heats up in water")
 elem.property(k, "Falldown", 1)
 elem.property(k, "Weight", 50)
 elem.property(k, "Advection", 0.03)
@@ -99,8 +120,8 @@ elem.property(k, "Update", function (i,x,y,s,n)
     nearby == elem.DEFAULT_PT_ICE then 
         tpt.set_property("temp", sim.partProperty(i, "temp") + 12, i)
         sim.pressure((x/4),(y/4), 0.1)
-    elseif nearby == cl then
-        sim.partCreate(-2, x-1, y+1, kcl)
+    elseif nearby == elem.FUNPK1_PT_F2 then
+        sim.partCreate(-2, x-1, y+1, elem.FUNPK1_PT_KF)
         sim.partKill(x,y)
     end
 
@@ -109,20 +130,33 @@ elem.property(k, "Update", function (i,x,y,s,n)
     end
 end)
 
-elem.property(kcl, "Name", "KCL")
-elem.property(kcl, "Description", "Potassium Chloride. TODO: Solute in water for better plant growth.")
-elem.property(kcl, "Falldown", 1)
-elem.property(kcl, "Advection", 0.03)
-elem.property(kcl, "Weight", 50)
-elem.property(kcl, "Gravity", 0.04)
-elem.property(kcl, "Meltable", 1)
-elem.property(kcl, "HighTemperature", 273.15 + 1420)
-elem.property(kcl, "HighTemperatureTransition", elem.DEFAULT_PT_LAVA)
-elem.property(kcl, "MenuSection", elem.SC_POWDERS)
-elem.property(kcl, "MenuVisible", 1)
-elem.property(kcl, "Properties", elem.TYPE_PART)
-elem.property(kcl, "Colour", 0xfaf9f2)
-elem.property(kcl, "Temperature", 22 + 273.15)
+elem.property(kf, "Name", "KF")
+elem.property(kf, "Description", "Potassium Fluoride. Use it as cleaner because it kills bacteria.")
+elem.property(kf, "Falldown", 1)
+elem.property(kf, "Weight", 50)
+elem.property(kf, "Advection", 0.03)
+elem.property(kf, "Gravity", 0.04)
+elem.property(kf, "Meltable", 1)
+elem.property(kf, "HighTemperature", 273.15 + 758.8)
+elem.property(kf, "HighTemperatureTransition", elem.DEFAULT_PT_LAVA)
+elem.property(kf, "MenuSection", elem.SC_POWDERS)
+elem.property(kf, "MenuVisible", 1)
+elem.property(kf, "Properties", elem.PROP_CONDUCTS + elem.TYPE_PART)
+elem.property(kf, "Colour", 0xfaf9f2)
+elem.property(kf, "Temperature", 22 + 273.15)
+elem.property(kf, "Update", function (i,x,y,s,n)
+    local thatx = x+math.random(-1,1)
+    local thaty = y+math.random(-1,1)
+    local nearby = tpt.get_property("type",thatx,thaty);
+    if nearby == elem.DEFAULT_PT_WATR or
+    nearby == elem.DEFAULT_PT_DSTW or 
+    nearby == elem.DEFAULT_PT_SLTW then
+        sim.partKill(x, y)
+        local owo = sim.partCreate(-1, x-1, y, elem.DEFAULT_PT_DSTW)
+        sim.partProperty(owo, "tmp", 5)
+        tpt.set_property("tmp", 5, thatx, thaty)
+    end
+end)
 
 
 ---- White (and Red) Phosphorus ----
@@ -240,6 +274,48 @@ elem.property(exgs, "Properties", elem.TYPE_GAS)
 elem.property(exgs, "Colour", 0x505050)
 elem.property(exgs, "Temperature", 22 + 273.15)
 
+elem.property(methane, "Name", "CH4")
+elem.property(methane, "Description", "Methane gas. Flammability on another level")
+elem.property(methane, "Falldown", 0)
+elem.property(methane, "Weight", 1)
+elem.property(methane, "Flammable", 600)
+elem.property(methane, "Advection", 0.007)
+elem.property(methane, "Gravity", -0.002)
+elem.property(methane, "Diffusion", 0.36)
+elem.property(methane, "MenuSection", elem.SC_GAS)
+elem.property(methane, "MenuVisible", 1)
+elem.property(methane, "Properties", elem.TYPE_GAS)
+elem.property(methane, "Colour", 0x808080)
+elem.property(methane, "Temperature", 22 + 273.15)
+
+elem.property(ammonia, "Name", "NH3")
+elem.property(ammonia, "Description", "Ammonia.")
+elem.property(ammonia, "Falldown", 0)
+elem.property(ammonia, "Weight", 1)
+elem.property(ammonia, "Flammable", 250)
+elem.property(ammonia, "Advection", 0.007)
+elem.property(ammonia, "Gravity", -0.002)
+elem.property(ammonia, "Diffusion", 0.4)
+elem.property(ammonia, "MenuSection", elem.SC_GAS)
+elem.property(ammonia, "MenuVisible", 1)
+elem.property(ammonia, "Properties", elem.TYPE_GAS)
+elem.property(ammonia, "Colour", 0x393912)
+elem.property(ammonia, "Temperature", 22 + 273.15)
+elem.property(ammonia, "Update", function (i,x,y,s,n)
+    local thatx = x+math.random(-5,5)
+    local thaty = y+math.random(-5,5)
+    local nearby = tpt.get_property("type",thatx,thaty);
+    if nearby == elem.DEFAULT_PT_WATR then
+        if tpt.get_property("type", thatx, thaty) == elem.DEFAULT_PT_BHOL or tpt.get_property("type", thatx, thaty) == elem.DEFAULT_PT_WATR then 
+            sim.partKill(thatx, thaty)
+        end
+        sim.partKill(thatx, thaty)
+        sim.partCreate(-1, thatx, thaty, elem.DEFAULT_PT_DSTW)
+        sim.partCreate(-1, thatx, y-1, elem.DEFAULT_PT_DSTW)
+    end
+end) 
+
+
 local neon = elem.allocate("FUNPK1", "NEON")
 elem.property(neon, "Name", "NEON")
 elem.property(neon, "Description", "Neon. Spark it to glow")
@@ -250,14 +326,21 @@ elem.property(neon, "Gravity", -0.001)
 elem.property(neon, "MenuSection", elem.SC_GAS)
 elem.property(neon, "MenuVisible", 1)
 elem.property(neon, "Properties", elem.TYPE_GAS + elem.PROP_CONDUCTS)
-elem.property(neon, "Colour", 0xff2a00)
+elem.property(neon, "Colour", 0x202020)
 elem.property(neon, "Diffusion", 0.001)
 elem.property(neon, "Temperature", 22 + 273.15)
 elem.property(neon, "Update", function (i, x, y, s, n) 
     local thatx = x+math.random(-5,5)
     local thaty = y+math.random(-5,5)
     local nearby = tpt.get_property("type",thatx,thaty);
-    if sim.partProperty(i, "life") == 4 then sim.partProperty(i, "life", 0) end
+    if sim.partProperty(i, "life") == 4 then sim.partProperty(i, "life", 0); sim.partProperty(i, "tmp", 1) end
+end)
+elem.property(neon, "Graphics", function (i, r, g, b)
+    if sim.partProperty(i, "tmp") ~= nil and sim.partProperty(i, "tmp") == 1 then 
+        return 0,ren.FIRE_BLEND+ren.NO_DECO,255,255,255,125,255,255,125
+    elseif sim.partProperty(i, "tmp") == nil then
+        return 0,ren.FIRE_BLEND+ren.NO_DECO,255,r,g,b,r/2,g/2,b/2
+    end
 end)
 
 -- Sulfur and its relatives
@@ -350,7 +433,11 @@ elem.property(bpd, "MenuVisible", 1)
 elem.property(bpd, "Properties", elem.TYPE_PART + elem.PROP_DEADLY)
 elem.property(bpd, "Colour", 0x323337)
 elem.property(bpd, "Temperature", 22 + 273.15)
-elem.property(bpd, "Update", function (i, x, y, s, n) 
+elem.property(bpd, "HighPressure", 5)
+elem.property(bpd, "HighPressureTransition", elem.DEFAULT_PT_FIRE)
+elem.property(bpd, "HighTemperature", 273.15 + 392)
+elem.property(bpd, "HighTemperatureTransition", elem.DEFAULT_PT_FIRE)
+elem.property(bpd, "Update", function (i, x, y, s, n)
     local thatx = x+math.random(-5,5)
     local thaty = y+math.random(-5,5)
     local nearby = tpt.get_property("type",thatx,thaty);
@@ -390,20 +477,19 @@ elem.property(sulfuric, "Update", function (i,x,y,s,n)
         local randx = x+math.random(-1,1)
         local randy = y+math.random(-1,1)
         if sim.partProperty(i, "tmp") == 16 then sim.partKill(i) end
-        if tpt.get_property("type",randx,randy) ~= elem.FUNPK1_PT_H2SO4 and
-        tpt.get_property("type",randx,randy) ~= elem.FUNPK1_PT_HCL and
-        tpt.get_property("type",randx,randy) ~= elem.FUNPK1_PT_NPLM and
-        tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_DMND and
-        tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_ACID and
-        tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_GLAS and
-        tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_WATR and -- WATR, for good reason
-        tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_DSTW and 
-        tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_CAUS and 
-        tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_NONE and
-        tpt.get_property("type",randx,randy) ~= elem.FUNPK1_PT_EXGS and
-        tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_FIRE and
-        tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_SMKE and
-        tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_WTRV and
+        local nearby = tpt.get_property("type",randx,randy)
+        if nearby ~= nil and nearby ~= elem.FUNPK1_PT_H2SO4 and
+        nearby ~= elem.FUNPK1_PT_HCL and
+        nearby ~= elem.FUNPK1_PT_NPLM and
+        nearby ~= elem.DEFAULT_PT_DMND and
+        nearby ~= elem.DEFAULT_PT_ACID and
+        nearby ~= elem.DEFAULT_PT_GLAS and
+        nearby ~= elem.DEFAULT_PT_WATR and -- WATR, for good reason
+        nearby ~= elem.DEFAULT_PT_DSTW and 
+        nearby ~= elem.DEFAULT_PT_CAUS and 
+        nearby ~= elem.DEFAULT_PT_NONE and
+        nearby ~= elem.DEFAULT_PT_FIRE and
+        bit.band(elem.property(nearby, "Properties"), elem.TYPE_GAS) ~= 0 and
         sim.partProperty(i, "tmp") ~= nil
         then
             sim.partProperty(i, "temp", sim.partProperty(i, "temp") + math.random(19,25))
@@ -435,19 +521,19 @@ elem.property(hcl, "Temperature", 22 + 273.15)
 elem.property(hcl, "Update", function (i,x,y,s,n)
     local randx = x+math.random(-1,1)
     local randy = y+math.random(-1,1)
-    if tpt.get_property("type",randx,randy) ~= elem.FUNPK1_PT_H2SO4 and
-    tpt.get_property("type",randx,randy) ~= elem.FUNPK1_PT_HCL and
-    tpt.get_property("type",randx,randy) ~= elem.FUNPK1_PT_NPLM and
-    tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_DMND and
-    tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_ACID and
-    tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_GLAS and
-    tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_WATR and -- WATR, for good reason
-    tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_DSTW and 
-    tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_CAUS and 
-    tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_NONE and
-    tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_FIRE and
-    tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_SMKE and
-    tpt.get_property("type",randx,randy) ~= elem.FUNPK1_PT_EXGS and
+    local nearby = tpt.get_property("type",randx,randy)
+    if nearby ~= nil and nearby ~= elem.FUNPK1_PT_H2SO4 and
+    nearby ~= elem.FUNPK1_PT_HCL and
+    nearby ~= elem.FUNPK1_PT_NPLM and
+    nearby ~= elem.DEFAULT_PT_DMND and
+    nearby ~= elem.DEFAULT_PT_ACID and
+    nearby ~= elem.DEFAULT_PT_GLAS and
+    nearby ~= elem.DEFAULT_PT_WATR and -- WATR, for good reason
+    nearby ~= elem.DEFAULT_PT_DSTW and 
+    nearby ~= elem.DEFAULT_PT_CAUS and 
+    nearby ~= elem.DEFAULT_PT_NONE and
+    nearby ~= elem.DEFAULT_PT_FIRE and
+    bit.band(elem.property(nearby, "Properties"), elem.TYPE_GAS) ~= 0 and
     sim.partProperty(i, "tmp") ~= nil
     then
         sim.partKill(randx, randy)
@@ -503,7 +589,8 @@ elem.property(nplm, "Update", function (i,x,y,s,n) -- Just realized that i can u
 end)
 
 -- spekial
-graphics.drawRect(0,0,604,383,255,255,255,255)
+local f = elem.allocate("FUNPK1", "F2")
+local bac = elem.allocate("FUNPK1", "BACT")
 elem.property(fb, "Name", "FBNG")
 elem.property(fb, "Description", "Flashbang.")
 elem.property(fb, "Falldown", 0)
@@ -518,14 +605,32 @@ elem.property(fb, "Update", function (i,x,y,s,n) -- Just realized that i can use
     if sim.partProperty(i, "life") ~= nil and sim.partProperty(i, "tmp") ~= nil and
     sim.partProperty(i, "tmp") == 0
     then
-        sim.partProperty(i, "life", 20)
+        local alpha = 250
+        function dr()
+            if sim.partProperty(i, "life") ~= nil and
+            sim.partProperty(i, "life") <= 10 then
+                return false
+            else
+                graphics.fillRect(0,0,graphics.WIDTH, graphics.HEIGHT, 255,255,255,alpha)
+                alpha = alpha - 12
+            end
+        end
+        event.register(evt.BEFORESIMDRAW, dr)
+        sim.partProperty(i, "life", 50)
         sim.partProperty(i, "tmp", 1)
     else 
-        -- function f_() graphics.fillRect(5,5,graphics.WIDTH, graphics.HEIGHT) end
-        
         sim.partProperty(i, "life", sim.partProperty(i, "life") - 1)
     end
-    if sim.partProperty(i, "life") ~= nil and sim.partProperty(i, "life") == 0 then sim.partKill(i); end
+    if sim.partProperty(i, "life") ~= nil and sim.partProperty(i, "life") == 0 then
+        sim.partKill(i);
+    elseif sim.partProperty(i, "life") ~= nil and sim.partProperty(i, "life") == 10 then 
+        event.unregister(evt.BEFORESIMDRAW, dr)
+    end
+end)
+elem.property(fb, "ChangeType", function (i, x, y, t, ntype)
+    if t == 0 then return false else
+        event.unregister(evt.BEFORESIMDRAW, dr)
+    end
 end)
 
 local fran = elem.allocate("FUNPK1", "OGNS")
@@ -547,7 +652,9 @@ elem.property(fran, "Update", function (i,x,y,s,n)
         sim.partProperty(i, "life", math.random(200, 880))
         sim.partProperty(i, "tmp", 1)
     end
-    if sim.partProperty(i, "life") ~= nil and sim.partProperty(i, "life") == 0 then sim.partKill(i) end
+    if sim.partProperty(i, "life") ~= nil and sim.partProperty(i, "life") == 0 then 
+        sim.partKill(i) 
+    end
     if sim.partProperty(i, "life") ~= nil then sim.partProperty(i, "life", sim.partProperty(i, "life") -  1)
         sim.partProperty(i, "temp", 273.15 + 230) 
     end
@@ -558,11 +665,22 @@ elem.property(bouncy, "Name", "BNCY")
 elem.property(bouncy, "Description", "Bouncy things")
 elem.property(bouncy, "Colour", 0xFC2010)
 elem.property(bouncy, "Falldown", 1)
-elem.property(bouncy, "Loss", 0.99)
-elem.property(bouncy, "Collision", -0.99)
+elem.property(bouncy, "Loss", 1)
+elem.property(bouncy, "Collision", -1.2)
 elem.property(bouncy, "Properties", elem.TYPE_PART)
 elem.property(bouncy, "Weight", 50)
 elem.property(bouncy, "Gravity", 0.8)
 elem.property(bouncy, "MenuSection", elem.SC_POWDERS)
 elem.property(bouncy, "MenuVisible", 1)
 elem.property(bouncy, "Properties", elem.TYPE_PART)
+
+elem.property(f, "Name", "F2")
+elem.property(f, "Description", "Fluorine")
+elem.property(f, "Colour", 0xbdd149)
+elem.property(f, "Falldown", 0)
+elem.property(f, "Properties", elem.TYPE_GAS)
+elem.property(f, "Advection", 0.007)
+elem.property(f, "Gravity", -0.002)
+elem.property(f, "Diffusion", 0.09)
+elem.property(f, "MenuSection", elem.SC_GAS)
+elem.property(f, "MenuVisible", 1)
