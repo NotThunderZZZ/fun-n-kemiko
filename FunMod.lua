@@ -22,6 +22,7 @@ Methane (CH4):            Methane gas. Flammability on another level
 Ammonia (NH3):            Ammonia.
 ... and much much more!
 ]]
+
 print("\bt[FM]\bw Fun n' Chemicals loaded!")
 tpt.register_keyevent(function (k, c, m, e) 
     if k == "o"and e == 1 and m == 64+256 then
@@ -489,7 +490,7 @@ elem.property(sulfuric, "Update", function (i,x,y,s,n)
         nearby ~= elem.DEFAULT_PT_CAUS and 
         nearby ~= elem.DEFAULT_PT_NONE and
         nearby ~= elem.DEFAULT_PT_FIRE and
-        bit.band(elem.property(nearby, "Properties"), elem.TYPE_GAS) ~= 0 and
+        bit.band(elem.property(nearby, "Properties"), elem.TYPE_GAS) == 0 and
         sim.partProperty(i, "tmp") ~= nil
         then
             sim.partProperty(i, "temp", sim.partProperty(i, "temp") + math.random(19,25))
@@ -533,7 +534,7 @@ elem.property(hcl, "Update", function (i,x,y,s,n)
     nearby ~= elem.DEFAULT_PT_CAUS and 
     nearby ~= elem.DEFAULT_PT_NONE and
     nearby ~= elem.DEFAULT_PT_FIRE and
-    bit.band(elem.property(nearby, "Properties"), elem.TYPE_GAS) ~= 0 and
+    bit.band(elem.property(nearby, "Properties"), elem.TYPE_GAS) == 0 and
     sim.partProperty(i, "tmp") ~= nil
     then
         sim.partKill(randx, randy)
