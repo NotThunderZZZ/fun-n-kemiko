@@ -16,6 +16,8 @@ tpt.register_keyevent(function (k, c, m, e)
         )
     elseif k == "'" then
         plat.restart()
+    elseif k == 'i' then
+        graphics.drawRect(0,0,604,383,255,255,255,255)
     end
 end)
 
@@ -26,6 +28,7 @@ local kcl = elem.allocate("FUNPK1", "KCL")
 local k2so4 = elem.allocate("FUNPK1", "K2SO4")
 local p = elem.allocate("FUNPK1", "P4")
 local redp = elem.allocate("FUNPK1", "REDP4")
+local fb = elem.allocate("FUNPK1", "FB")
 
 ---- Sodium ----
 elem.property(na, "Name", "NA")
@@ -237,6 +240,129 @@ elem.property(exgs, "Properties", elem.TYPE_GAS)
 elem.property(exgs, "Colour", 0x505050)
 elem.property(exgs, "Temperature", 22 + 273.15)
 
+local neon = elem.allocate("FUNPK1", "NEON")
+elem.property(neon, "Name", "NEON")
+elem.property(neon, "Description", "Neon. Spark it to glow")
+elem.property(neon, "Falldown", 0)
+elem.property(neon, "Advection", 0.018)
+elem.property(neon, "Weight", 1)
+elem.property(neon, "Gravity", -0.001)
+elem.property(neon, "MenuSection", elem.SC_GAS)
+elem.property(neon, "MenuVisible", 1)
+elem.property(neon, "Properties", elem.TYPE_GAS + elem.PROP_CONDUCTS)
+elem.property(neon, "Colour", 0xff2a00)
+elem.property(neon, "Diffusion", 0.001)
+elem.property(neon, "Temperature", 22 + 273.15)
+elem.property(neon, "Update", function (i, x, y, s, n) 
+    local thatx = x+math.random(-5,5)
+    local thaty = y+math.random(-5,5)
+    local nearby = tpt.get_property("type",thatx,thaty);
+    if sim.partProperty(i, "life") == 4 then sim.partProperty(i, "life", 0) end
+end)
+
+-- Sulfur and its relatives
+local sul = elem.allocate("FUNPK1", "SULF")
+local sulo2 = elem.allocate("FUNPK1", "SO2")
+local sulo3 = elem.allocate("FUNPK1", "SO3")
+local bpd = elem.allocate("FUNPK1", "BKP")
+
+elem.property(sul, "Name", "SULF")
+elem.property(sul, "Description", "Sulfur. Used for black powder and H2SO4 production.")
+elem.property(sul, "Falldown", 1)
+elem.property(sul, "Flammable", 50)
+elem.property(sul, "Advection", 0.018)
+elem.property(sul, "Weight", 75)
+elem.property(sul, "Gravity", 0.1)
+elem.property(sul, "MenuSection", elem.SC_EXPLOSIVE)
+elem.property(sul, "MenuVisible", 1)
+elem.property(sul, "Properties", elem.TYPE_PART + elem.PROP_DEADLY)
+elem.property(sul, "Colour", 0xf2e607)
+elem.property(sul, "Temperature", 22 + 273.15)
+elem.property(sul, "Update", function (i, x, y, s, n) 
+    local thatx = x+math.random(-5,5)
+    local thaty = y+math.random(-5,5)
+    local nearby = tpt.get_property("type",thatx,thaty);
+    if nearby == elem.DEFAULT_PT_FIRE or nearby == elem.DEFAULT_PT_PLSM then 
+        sim.partCreate(-3, x-1, y-1, elem.FUNPK1_PT_SO2)
+        sim.partKill(x, y)
+    elseif nearby == elem.DEFAULT_PT_BCOL then
+        if tpt.get_property("type", thatx, thaty) == elem.DEFAULT_PT_BHOL then 
+            sim.partKill(thatx, thaty)
+        end
+        sim.partKill(thatx, thaty)
+        sim.partCreate(-1, x, y-1, elem.FUNPK1_PT_BKP)
+    end
+end)
+
+elem.property(sulo2, "Name", "SO2")
+elem.property(sulo2, "Description", "Sulfur dioxide. Turn into Sulfur Trioxide after exposed to oxygen")
+elem.property(sulo2, "Falldown", 0)
+elem.property(sulo2, "Advection", 0.018)
+elem.property(sulo2, "Weight", 1)
+elem.property(sulo2, "Gravity", -0.001)
+elem.property(sulo2, "MenuSection", elem.SC_GAS)
+elem.property(sulo2, "MenuVisible", 0)
+elem.property(sulo2, "Properties", elem.TYPE_GAS + elem.PROP_DEADLY)
+elem.property(sulo2, "Diffusion", 0.001)
+elem.property(sulo2, "Colour", 0x020202)
+elem.property(sulo2, "Temperature", 22 + 273.15)
+elem.property(sulo2, "Update", function (i, x, y, s, n) 
+    local thatx = x+math.random(-5,5)
+    local thaty = y+math.random(-5,5)
+    local nearby = tpt.get_property("type",thatx,thaty);
+    if nearby == elem.DEFAULT_PT_OXYG then 
+        sim.partCreate(-3, x-1, y+1, elem.FUNPK1_PT_SO3)
+        sim.partKill(x, y)
+    end
+end)
+
+elem.property(sulo3, "Name", "SO3")
+elem.property(sulo3, "Description", "Sulfur dioxide. Turn into Sulfur Trioxide after exposed to oxygen")
+elem.property(sulo3, "Falldown", 0)
+elem.property(sulo3, "Advection", 0.018)
+elem.property(sulo3, "Weight", 1)
+elem.property(sulo3, "Gravity", -0.001)
+elem.property(sulo3, "MenuSection", elem.SC_GAS)
+elem.property(sulo3, "MenuVisible", 0)
+elem.property(sulo3, "Properties", elem.TYPE_GAS + elem.PROP_DEADLY)
+elem.property(sulo3, "Colour", 0x232524)
+elem.property(sulo3, "Diffusion", 0.001)
+elem.property(sulo3, "Temperature", 22 + 273.15)
+elem.property(sulo3, "Update", function (i, x, y, s, n) 
+    local thatx = x+math.random(-5,5)
+    local thaty = y+math.random(-5,5)
+    local nearby = tpt.get_property("type",thatx,thaty);
+    if nearby == elem.DEFAULT_PT_WTRV then 
+        sim.partCreate(-3, x-1, y+1, elem.FUNPK1_PT_H2SO4)
+        sim.partKill(x, y)
+    end
+end)
+
+elem.property(bpd, "Name", "BPWD")
+elem.property(bpd, "Description", "Black powder. Think of it...")
+elem.property(bpd, "Falldown", 1)
+elem.property(bpd, "Weight", 49)
+-- elem.property(bpd, "Flammable", 500)
+-- elem.property(bpd, "Explosive", 1)
+elem.property(bpd, "Gravity", 0.06)
+elem.property(bpd, "MenuSection", elem.SC_EXPLOSIVE)
+elem.property(bpd, "MenuVisible", 1)
+elem.property(bpd, "Properties", elem.TYPE_PART + elem.PROP_DEADLY)
+elem.property(bpd, "Colour", 0x323337)
+elem.property(bpd, "Temperature", 22 + 273.15)
+elem.property(bpd, "Update", function (i, x, y, s, n) 
+    local thatx = x+math.random(-5,5)
+    local thaty = y+math.random(-5,5)
+    local nearby = tpt.get_property("type",thatx,thaty);
+    if nearby == elem.DEFAULT_PT_FIRE or nearby == elem.DEFAULT_PT_PLSM then 
+        sim.partProperty(i, "temp", math.random(4999, 5999))
+        sim.partCreate(-3, x+math.random(-1,1), y+1, elem.DEFAULT_PT_FIRE)
+        sim.pressure((x-4)/4,(y-4)/4,50)
+        sim.partKill(i)
+    end
+end)
+
+
 -- Liquids
 local sulfuric = elem.allocate("FUNPK1", "H2SO4")
 local hcl = elem.allocate("FUNPK1", "HCL")
@@ -277,6 +403,7 @@ elem.property(sulfuric, "Update", function (i,x,y,s,n)
         tpt.get_property("type",randx,randy) ~= elem.FUNPK1_PT_EXGS and
         tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_FIRE and
         tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_SMKE and
+        tpt.get_property("type",randx,randy) ~= elem.DEFAULT_PT_WTRV and
         sim.partProperty(i, "tmp") ~= nil
         then
             sim.partProperty(i, "temp", sim.partProperty(i, "temp") + math.random(19,25))
@@ -374,3 +501,68 @@ elem.property(nplm, "Update", function (i,x,y,s,n) -- Just realized that i can u
         tpt.set_property("tmp", 1, randx, y)
     end
 end)
+
+-- spekial
+graphics.drawRect(0,0,604,383,255,255,255,255)
+elem.property(fb, "Name", "FBNG")
+elem.property(fb, "Description", "Flashbang.")
+elem.property(fb, "Falldown", 0)
+elem.property(fb, "Weight", 1)
+elem.property(fb, "Gravity", 0)
+elem.property(fb, "MenuSection", elem.SC_SPECIAL)
+elem.property(fb, "MenuVisible", 1)
+elem.property(fb, "Properties", elem.TYPE_SOLID + elem.PROP_LIFE_KILL_DEC)
+elem.property(fb, "Colour", 0xFF2003)
+elem.property(fb, "Temperature", 22 + 273.15)
+elem.property(fb, "Update", function (i,x,y,s,n) -- Just realized that i can use Flammability in Properties... :')
+    if sim.partProperty(i, "life") ~= nil and sim.partProperty(i, "tmp") ~= nil and
+    sim.partProperty(i, "tmp") == 0
+    then
+        sim.partProperty(i, "life", 20)
+        sim.partProperty(i, "tmp", 1)
+    else 
+        -- function f_() graphics.fillRect(5,5,graphics.WIDTH, graphics.HEIGHT) end
+        
+        sim.partProperty(i, "life", sim.partProperty(i, "life") - 1)
+    end
+    if sim.partProperty(i, "life") ~= nil and sim.partProperty(i, "life") == 0 then sim.partKill(i); end
+end)
+
+local fran = elem.allocate("FUNPK1", "OGNS")
+elem.property(fran, "Name", "FRAN")
+elem.property(fran, "Description", "France- Wait, it's Francium")
+elem.property(fran, "Colour", 0xABE828)
+elem.property(fran, "Falldown", 1)
+elem.property(fran, "Properties", elem.TYPE_PART)
+elem.property(fran, "Weight", 50)
+elem.property(fran, "Gravity", 0.3)
+elem.property(fran, "MenuSection", elem.SC_POWDERS)
+elem.property(fran, "MenuVisible", 1)
+elem.property(fran, "Properties", elem.TYPE_PART)
+elem.property(fran, "Update", function (i,x,y,s,n)
+    if math.random(1,100) == 21 then sim.partCreate(-3, x, y+1, elem.DEFAULT_PT_NEUT) end
+    if sim.partProperty(i, "life") ~= nil and sim.partProperty(i, "tmp") ~= nil and
+    sim.partProperty(i, "tmp") == 0
+    then
+        sim.partProperty(i, "life", math.random(200, 880))
+        sim.partProperty(i, "tmp", 1)
+    end
+    if sim.partProperty(i, "life") ~= nil and sim.partProperty(i, "life") == 0 then sim.partKill(i) end
+    if sim.partProperty(i, "life") ~= nil then sim.partProperty(i, "life", sim.partProperty(i, "life") -  1)
+        sim.partProperty(i, "temp", 273.15 + 230) 
+    end
+end)
+
+local bouncy = elem.allocate("FUNPK1", "BNCY")
+elem.property(bouncy, "Name", "BNCY")
+elem.property(bouncy, "Description", "Bouncy things")
+elem.property(bouncy, "Colour", 0xFC2010)
+elem.property(bouncy, "Falldown", 1)
+elem.property(bouncy, "Loss", 0.99)
+elem.property(bouncy, "Collision", -0.99)
+elem.property(bouncy, "Properties", elem.TYPE_PART)
+elem.property(bouncy, "Weight", 50)
+elem.property(bouncy, "Gravity", 0.8)
+elem.property(bouncy, "MenuSection", elem.SC_POWDERS)
+elem.property(bouncy, "MenuVisible", 1)
+elem.property(bouncy, "Properties", elem.TYPE_PART)
