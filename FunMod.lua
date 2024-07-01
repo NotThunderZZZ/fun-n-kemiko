@@ -23,7 +23,9 @@ Ammonia (NH3):            Ammonia.
 ... and much much more!
 ]]
 
+----------------------- Chemistry -----------------------
 print("\bt[FM]\bw Fun n' Chemicals loaded!")
+print("\bt[FM]\bw Fights against ads!")
 tpt.register_keyevent(function (k, c, m, e) 
     if k == "o"and e == 1 and m == 64+256 then
         tpt.log("Greetings from USA, by 0xHenryMC.")
@@ -126,7 +128,7 @@ elem.property(k, "Update", function (i,x,y,s,n)
         sim.partKill(x,y)
     end
 
-    if sim.partProperty(i, "life") > 0 then
+    if sim.partProperty(i, "life") ~= nil and sim.partProperty(i, "life") > 0 then
         sim.partProperty(i, "life", sim.partProperty(i, "life") - 2)
     end
 end)
@@ -153,8 +155,7 @@ elem.property(kf, "Update", function (i,x,y,s,n)
     nearby == elem.DEFAULT_PT_DSTW or 
     nearby == elem.DEFAULT_PT_SLTW then
         sim.partKill(x, y)
-        local owo = sim.partCreate(-1, x-1, y, elem.DEFAULT_PT_DSTW)
-        sim.partProperty(owo, "tmp", 5)
+        local owo = sim.partCreate(-1, x-1, y, elem.FUNPK2_PT_CLNW)
         tpt.set_property("tmp", 5, thatx, thaty)
     end
 end)
@@ -249,9 +250,6 @@ elem.property(cl, "Update", function (i,x,y,s,n)
     if nearby == na then
         sim.partCreate(-3, x-1, y+1, elem.DEFAULT_PT_SALT)
         sim.partKill(x, y)
-    elseif nearby == k then
-        sim.partCreate(-3, x-1, y+1, kcl)
-        sim.partKill(x, y)
     elseif nearby == elem.DEFAULT_PT_HYGN then
         sim.partCreate(-3, x, y-1, elem.FUNPK1_PT_HCL)
         sim.partKill(x, y)
@@ -338,10 +336,9 @@ elem.property(neon, "Update", function (i, x, y, s, n)
 end)
 elem.property(neon, "Graphics", function (i, r, g, b)
     if sim.partProperty(i, "tmp") ~= nil and sim.partProperty(i, "tmp") == 1 then 
-        return 0,ren.FIRE_BLEND+ren.NO_DECO,255,255,255,125,255,255,125
-    elseif sim.partProperty(i, "tmp") == nil then
-        return 0,ren.FIRE_BLEND+ren.NO_DECO,255,r,g,b,r/2,g/2,b/2
+        return 0,ren.FIRE_BLEND+ren.NO_DECO,255,255,255,125,255,255,125 
     end
+    return 0,ren.FIRE_BLEND+ren.NO_DECO,255,r,g,b,r/2,g/2,b/2
 end)
 
 -- Sulfur and its relatives
@@ -491,6 +488,7 @@ elem.property(sulfuric, "Update", function (i,x,y,s,n)
         nearby ~= elem.DEFAULT_PT_NONE and
         nearby ~= elem.DEFAULT_PT_FIRE and
         bit.band(elem.property(nearby, "Properties"), elem.TYPE_GAS) == 0 and
+        bit.band(elem.property(nearby, "Properties"), elem.TYPE_ENERGY) == 0 and
         sim.partProperty(i, "tmp") ~= nil
         then
             sim.partProperty(i, "temp", sim.partProperty(i, "temp") + math.random(19,25))
@@ -535,6 +533,7 @@ elem.property(hcl, "Update", function (i,x,y,s,n)
     nearby ~= elem.DEFAULT_PT_NONE and
     nearby ~= elem.DEFAULT_PT_FIRE and
     bit.band(elem.property(nearby, "Properties"), elem.TYPE_GAS) == 0 and
+    bit.band(elem.property(nearby, "Properties"), elem.TYPE_ENERGY) == 0 and
     sim.partProperty(i, "tmp") ~= nil
     then
         sim.partKill(randx, randy)
@@ -629,7 +628,7 @@ elem.property(fb, "Update", function (i,x,y,s,n) -- Just realized that i can use
     end
 end)
 elem.property(fb, "ChangeType", function (i, x, y, t, ntype)
-    if t == 0 then return false else
+    if t == 0 then return nil  else
         event.unregister(evt.BEFORESIMDRAW, dr)
     end
 end)
@@ -679,9 +678,52 @@ elem.property(f, "Name", "F2")
 elem.property(f, "Description", "Fluorine")
 elem.property(f, "Colour", 0xbdd149)
 elem.property(f, "Falldown", 0)
-elem.property(f, "Properties", elem.TYPE_GAS)
+elem.property(f, "Weight", 1)
+elem.property(f, "Properties", elem.TYPE_GAS, elem.PROP_DEADLY)
 elem.property(f, "Advection", 0.007)
 elem.property(f, "Gravity", -0.002)
 elem.property(f, "Diffusion", 0.09)
 elem.property(f, "MenuSection", elem.SC_GAS)
 elem.property(f, "MenuVisible", 1)
+elem.property(f, "Update", function (i,x,y,s,n)
+    local randx = x + math.random(-2, 2)
+    local randy = y + math.random(-1, 1)
+    local nearby = tpt.get_property("type", randx, randy)
+    if nearby == elem.FUNPK1_PT_K then
+        sim.partKill(randx, randy)
+        sim.partCreate(-2, randx, randy, kf)
+    end
+end)
+
+----------------------- Fun & Misc -----------------------
+local btra = elem.allocate("FUNPK2", "BTRA")
+local infw = elem.allocate("FUNPK2", "INFW")
+local clnw = elem.allocate("FUNPK2", "CLNW")
+
+elem.property(btra, "Name", "BTRA")
+elem.property(btra, "Description", "Bacteria. WIP floating gas")
+elem.property(btra, "Colour", 0x00cf01)
+elem.property(btra, "Falldown", 0)
+elem.property(btra, "Weight", 1)
+elem.property(btra, "Properties", elem.TYPE_GAS + elem.PROP_DEADLY + elem.PROP_HOT_GLOW)
+elem.property(btra, "Advection", 0.03)
+elem.property(btra, "Gravity", -0.03)
+elem.property(btra, "Diffusion", 0.75)
+elem.property(btra, "MenuSection", elem.SC_SPECIAL)
+elem.property(btra, "MenuVisible", 1)
+elem.property(btra, "Update", function (i,x,y,s,n)
+    local thatx = x + math.random(-1,1)
+    local thaty = y + math.random(-1,1)
+    local nearby = tpt.get_property("type", thatx, thaty)
+    if bit.band(elem.property(nearby, "Properties"), elem.PROP_DEADLY)
+    and sim.partProperty(i, "life") ~= nil then 
+        sim.partProperty(i, "life", sim.partProperty(i, "life") - 1)
+    end
+    if sim.partProperty(i, "life") ~= nil and
+    sim.partProperty(i, "life") == 0 then 
+        sim.partKill(i)
+    end
+end)
+elem.property(btra, "Create", function (i,x,y,s,n)
+    sim.partProperty(i, "life", 100)
+end)
